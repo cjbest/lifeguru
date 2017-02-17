@@ -113,7 +113,10 @@ let stateHandlers = {
         putState(state);
     },
     'waiting': (message, state) => {
-        message.reply("Always remember to do what I tell you, and you will be happy. See you later.");
+        message.reply(
+            Bot.Message.text("Always remember to do what I tell you, and you will be happy. See you later.")
+                .addTextResponse('Reset')
+        );
     }
 }
 
@@ -150,6 +153,8 @@ bot.onTextMessage((message) => {
 
         if (message.body == "Reset") {
             putState({user: message.from, state: 'new'});
+            console.log("Resetting for " + message.from);
+            return
         }
         console.log(state);
         stateHandlers[state.state](message, state);

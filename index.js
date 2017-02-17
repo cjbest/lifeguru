@@ -4,7 +4,7 @@ let util = require('util');
 let http = require('http');
 let Bot = require('@kikinteractive/kik');
 let Util = require('./util.js');
-var redis = require('redis').createClient(process.env.REDIS_URL | 'redis://localhost:6379/1');
+var redis = require('redis').createClient(process.env.REDIS_URL || 'redis://localhost:6379/1');
 
 let questions = [
     "Did you take 10k steps today?",

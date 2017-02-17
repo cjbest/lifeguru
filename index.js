@@ -11,7 +11,7 @@ let questions = [
     "Did participate in at least 4 hugs today?",
     "Did you tell yourself: \"I am the architect of my life; I build its foundation and choose its contents.\" today?",
     "Did you check your privilege?",
-    "Did you take at least one big, beefy poop?"
+    "Did you take at least one big, meaty poop?"
 ]
 
 let keyboardNo = ["No", "Nah", "No, I suck", "Nope"]

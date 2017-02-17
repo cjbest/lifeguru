@@ -136,7 +136,7 @@ function putState(state, callback) {
 let bot = new Bot({
     username: 'ratemyday',
     apiKey: '28468b56-d8ce-41b0-a736-115aa8f3465d',
-    baseUrl: 'https://7dca070f.ngrok.io'
+    baseUrl: 'https://fathomless-retreat-72110.herokuapp.com/'
 });
 
 bot.updateBotConfiguration();

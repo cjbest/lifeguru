@@ -153,6 +153,7 @@ bot.onTextMessage((message) => {
 
         if (message.body == "Reset") {
             putState({user: message.from, state: 'new'});
+            message.reply("Forgot-you-now.")
             console.log("Resetting for " + message.from);
             return
         }

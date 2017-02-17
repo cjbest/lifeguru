@@ -38,6 +38,7 @@
     "supertest": "1.1.x"
   },
   "dependencies": {
+    "@kikinteractive/kik": "^2.1.0",
     "node-uuid": "1.4.7",
     "redis": "^2.6.5",
     "request-promise": "1.0.2"

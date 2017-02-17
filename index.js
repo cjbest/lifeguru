@@ -102,7 +102,7 @@ let stateHandlers = {
         }
 
         if (state.answered >= questions.length) {
-            message.reply("That's it for today.");
+            message.reply("That's it for today. Remember: you need me.");
             state['state'] = 'waiting';
         } else {
             message.reply(Bot.Message.text(questions[state['answered']])

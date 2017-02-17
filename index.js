@@ -148,7 +148,7 @@ bot.onTextMessage((message) => {
     getState(message.from, (err, state) => {
         if (err) return console.log(err);
 
-        if (mesage.body == "Reset") {
+        if (message.body == "Reset") {
             putState({user: message.from, state: 'new'});
         }
         console.log(state);

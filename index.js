@@ -162,6 +162,14 @@ bot.onTextMessage((message) => {
     });
 });
 
+bot.onStartChattingMessage((message) => {
+     getState(message.from, (err, state) => {
+        if (err) return console.log(err);
+        console.log(message.from + " started chatting");
+        stateHandlers[state.state](message, state);
+    });
+});
+
 
 console.log("Starting to listen")
 let server = http

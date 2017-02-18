@@ -4,120 +4,37 @@ let util = require('util');
 let http = require('http');
 let Bot = require('@kikinteractive/kik');
 let Util = require('./util.js');
-var redis = require('redis').createClient(process.env.REDIS_URL || 'redis://localhost:6379/1');
+let Logic = require('./logic.js');
+let redis = require('redis').createClient(process.env.REDIS_URL || 'redis://localhost:6379/1');
 
-let questions = [
-    "Did you take 10k steps today?",
-    "Did participate in at least 4 hugs today?",
-    "Did you tell yourself: \"I am the architect of my life; I build its foundation and choose its contents.\" today?",
-    "Did you check your privilege?",
-    "Did you take at least one big, meaty poop?"
-]
+let PORT = process.env.PORT || 8080;
+let DEBUG = !process.env.REDIS_URL; // hack hack hack
 
-let keyboardNo = ["No", "Nah", "No, I suck", "Nope"]
-let keyboardYes = [
-    "Yes",
-    "Yup",
-    "Uh huh",
-    "Of course",
-    "Yes, I rock",
-    "You bet",
-    "Hellz to the yeah",
-    "Oh you best believe it"];
+var bot;
 
-let yesResponses = [
-    "Excellent",
-    "Satisfactory.",
-    "That's great. Really great",
-    "It's the least you could do",
-    "Ok",
-    "Good",
-    "Alright"
-]
-
-let noResponses = [
-    ":(",
-    "That's too bad",
-    "Sad.",
-    "Seriously?",
-    "Ugh.",
-    "Boo",
-    "Why do I even bother?",
-]
-
-let confusedResponses = [
-    "What?",
-    "Huh?",
-    "You're not making sense."
-]
-
-let stateHandlers = {
-    'new': (message, state) => {
-        var reply = Bot.Message.text("Hello there. Are you tired of being unhappy, of feeling your life is wasted, or just never being sure if you're good enough?")
-        reply.addTextResponse("Yes 😥");
-
-        state['state'] = 'new2';
-        putState(state, (err) => {
-            message.reply(reply);
+if (DEBUG) {
+    console.log("in debug mode");
+    require('ngrok').connect(PORT, (err, url) => {
+        console.log('ngrok url: ' + url);
+        let bot = new Bot({
+            username: 'cbtest.dev',
+            apiKey: 'aee21983-9bb0-4b11-9d46-2fff8518f24f',
+            baseUrl: url
         });
-    },
-    'new2': (message, state) => {
-        var reply = Bot.Message.text("Of course you are! I can help. Ill ask you " + questions.length
-            + " questions every day, and being able to answer yes to all of them "
-            + "will give your life purpose.")
-        reply.addTextResponse("Finally");
-        reply.addTextResponse("Sounds awful");
-        message.reply(reply);
-        state['state'] = 'new3';
-        putState(state);
-    },
-    'new3': (message, state) => {
+        bot.updateBotConfiguration();
+        setup(bot)
+    });
+} else {
+    console.log("in production mode");
+    // Configure the bot API endpoint, details for your bot
+    let bot = new Bot({
+        username: 'ratemyday',
+        apiKey: '28468b56-d8ce-41b0-a736-115aa8f3465d',
+        baseUrl: 'https://fathomless-retreat-72110.herokuapp.com/'
+    });
 
-        message.reply(Bot.Message.text("Great, lets get started"));
-
-        message.reply(Bot.Message.text(questions[0])
-            .addTextResponse(keyboardYes.randomElement())
-            .addTextResponse(keyboardNo.randomElement()))
-
-        state['state'] = 'questions';
-        state['answered'] = 0;
-        state['yes'] = 0;
-        putState(state);
-    },
-    'questions': (message, state) => {
-
-        if (keyboardYes.contains(message.body)) {
-            message.reply(yesResponses.randomElement())
-            state['answered']++;
-            state['yes']++;
-        }
-        else if (keyboardNo.contains(message.body)) {
-            message.reply(noResponses.randomElement())
-            state['answered']++
-        }
-        else {
-            message.reply(
-                Bot.Message.text(confusedResponses.randomElement())
-            );
-        }
-
-        if (state.answered >= questions.length) {
-            message.reply("That's it for today. Remember: you need me.");
-            state['state'] = 'waiting';
-        } else {
-            message.reply(Bot.Message.text(questions[state['answered']])
-                .addTextResponse(keyboardYes.randomElement())
-                .addTextResponse(keyboardNo.randomElement()));
-        }
-
-        putState(state);
-    },
-    'waiting': (message, state) => {
-        message.reply(
-            Bot.Message.text("Always remember to do what I tell you, and you will be happy. See you later.")
-                .addTextResponse('Reset')
-        );
-    }
+    bot.updateBotConfiguration();
+    setup(bot)
 }
 
 function getState(user, callback) {
@@ -137,41 +54,38 @@ function putState(state, callback) {
     redis.set(skey, JSON.stringify(state), callback);
 }
 
+function setup(bot) {
 
-// Configure the bot API endpoint, details for your bot
-let bot = new Bot({
-    username: 'ratemyday',
-    apiKey: '28468b56-d8ce-41b0-a736-115aa8f3465d',
-    baseUrl: 'https://fathomless-retreat-72110.herokuapp.com/'
-});
+    function handleMessage(message) {
+        getState(message.from, (err, state) => {
+            if (err) return console.log(err);
 
-bot.updateBotConfiguration();
+            if (message.body == "Reset") {
+                putState({ user: message.from, state: 'new' });
+                message.reply("Forgot-you-now.")
+                console.log("Resetting for " + message.from);
+                return
+            }
+            console.log(state);
 
-bot.onTextMessage((message) => {
-    getState(message.from, (err, state) => {
-        if (err) return console.log(err);
+            var replies = []
+            Logic.stateHandlers[state.state](message, state, replies);
+            putState(state, (err) => {
+                if (err) {
+                    console.log(err);
+                    message.reply("Oops I broke");
+                    return;
+                }
+                //console.log(replies)
+                bot.send(replies, message.from);
+            });
+        });
+    }
 
-        if (message.body == "Reset") {
-            putState({user: message.from, state: 'new'});
-            message.reply("Forgot-you-now.")
-            console.log("Resetting for " + message.from);
-            return
-        }
-        console.log(state);
-        stateHandlers[state.state](message, state);
-    });
-});
-
-bot.onStartChattingMessage((message) => {
-     getState(message.from, (err, state) => {
-        if (err) return console.log(err);
-        console.log(message.from + " started chatting");
-        stateHandlers[state.state](message, state);
-    });
-});
-
-
-console.log("Starting to listen")
-let server = http
-    .createServer(bot.incoming())
-    .listen(process.env.PORT || 8080);
+    bot.onTextMessage(handleMessage);
+    bot.onStartChattingMessage(handleMessage);
+    console.log("Starting to listen")
+    let server = http
+        .createServer(bot.incoming())
+        .listen(PORT);
+}

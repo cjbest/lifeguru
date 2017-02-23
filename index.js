@@ -5,56 +5,28 @@ let http = require('http');
 let Bot = require('@kikinteractive/kik');
 let Util = require('./util.js');
 let Logic = require('./logic.js');
-let redis = require('redis').createClient(process.env.REDIS_URL || 'redis://localhost:6379/1');
 
 let PORT = process.env.PORT || 8080;
 let DEBUG = !process.env.REDIS_URL; // hack hack hack
 
-var bot;
+function setup(bot, redis) {
 
-if (DEBUG) {
-    console.log("in debug mode");
-    require('ngrok').connect(PORT, (err, url) => {
-        console.log('ngrok url: ' + url);
-        let bot = new Bot({
-            username: 'cbtest.dev',
-            apiKey: 'aee21983-9bb0-4b11-9d46-2fff8518f24f',
-            baseUrl: url
+    function getState(user, callback) {
+        var skey = user + ":state";
+        redis.get(skey, (err, stateJSON) => {
+            if (err) return callback(err);
+            var state = { state: 'new', user: user }
+            if (stateJSON) {
+                state = JSON.parse(stateJSON);
+            }
+            callback(null, state);
         });
-        bot.updateBotConfiguration();
-        setup(bot)
-    });
-} else {
-    console.log("in production mode");
-    // Configure the bot API endpoint, details for your bot
-    let bot = new Bot({
-        username: 'ratemyday',
-        apiKey: '28468b56-d8ce-41b0-a736-115aa8f3465d',
-        baseUrl: 'https://fathomless-retreat-72110.herokuapp.com/'
-    });
+    }
 
-    bot.updateBotConfiguration();
-    setup(bot)
-}
-
-function getState(user, callback) {
-    var skey = user + ":state";
-    redis.get(skey, (err, stateJSON) => {
-        if (err) return callback(err);
-        var state = { state: 'new', user: user }
-        if (stateJSON) {
-            state = JSON.parse(stateJSON);
-        }
-        callback(null, state);
-    });
-}
-
-function putState(state, callback) {
-    var skey = state['user'] + ":state";
-    redis.set(skey, JSON.stringify(state), callback);
-}
-
-function setup(bot) {
+    function putState(state, callback) {
+        var skey = state['user'] + ":state";
+        redis.set(skey, JSON.stringify(state), callback);
+    }
 
     function handleMessage(message) {
         getState(message.from, (err, state) => {
@@ -89,3 +61,34 @@ function setup(bot) {
         .createServer(bot.incoming())
         .listen(PORT);
 }
+
+if (require.main === module) {
+    let redis = require('redis').createClient(process.env.REDIS_URL || 'redis://localhost:6379/1');
+    if (DEBUG) {
+        console.log("in debug mode");
+        require('ngrok').connect(PORT, (err, url) => {
+            console.log('ngrok url: ' + url);
+            let bot = new Bot({
+                username: 'cbtest.dev',
+                apiKey: 'aee21983-9bb0-4b11-9d46-2fff8518f24f',
+                baseUrl: url
+            });
+            bot.updateBotConfiguration();
+            setup(bot)
+        });
+    } else {
+        console.log("in production mode");
+        // Configure the bot API endpoint, details for your bot
+        let bot = new Bot({
+            username: 'ratemyday',
+            apiKey: '28468b56-d8ce-41b0-a736-115aa8f3465d',
+            baseUrl: 'https://fathomless-retreat-72110.herokuapp.com/'
+        });
+
+        bot.updateBotConfiguration();
+        setup(bot)
+    }
+} else {
+    console.log("Not main module, not starting server.");
+}
+

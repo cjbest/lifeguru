@@ -3,8 +3,8 @@
 let util = require('util');
 let http = require('http');
 let Bot = require('@kikinteractive/kik');
-let Util = require('./util.js');
-let Logic = require('./logic.js');
+//let Util = require('./util.js');
+//let Logic = require('./logic.js');
 
 let PORT = process.env.PORT || 8080;
 let DEBUG = !process.env.REDIS_URL; // hack hack hack

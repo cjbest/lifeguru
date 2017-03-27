@@ -19,9 +19,7 @@ var hello2 = class extends StateHandler {
         this.giveOptions("Finally!", "Sounds awful...")
     }
 
-    onOption() {
-
-    }
+    onOption() {}
 }
 
 

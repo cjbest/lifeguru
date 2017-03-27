@@ -17,13 +17,9 @@ exports.StateHandler = class StateHandler {
         this._serialOptionId = 1;
     }
 
-    onEnter() {
+    onEnter() {}
 
-    }
-
-    onOption() {
-
-    }
+    onOption() {}
 
     onOtherMessage() {
         // by default if we get a message we don't understand, sound confused and start over
@@ -34,11 +30,9 @@ exports.StateHandler = class StateHandler {
     say(msg) {
         if (typeof msg === 'string') {
             this._messagesToSend.push(Bot.Message.text(msg))
-        }
-        else if (msg instanceof Bot.Message) {
+        } else if (msg instanceof Bot.Message) {
             this._messagesToSend.push(msg)
-        }
-        else {
+        } else {
             throw new TypeError("Unexpected message type");
         }
     }
@@ -56,8 +50,7 @@ exports.StateHandler = class StateHandler {
     goTo(state) {
         if (state && state.prototype instanceof StateHandler) {
             this._nextState = state.getType();
-        }
-        else {
+        } else {
             throw new TypeError("Expecting a class that inherits from StateHandler");
         }
     }

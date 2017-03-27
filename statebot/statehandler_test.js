@@ -2,7 +2,7 @@ let test = require('tape')
 let StateHandler = require('./statehandler.js').StateHandler;
 Bot = require('@kikinteractive/kik');
 
-test('Enter a state', function (t) {
+test('Enter a state', function(t) {
     var H = class extends StateHandler {
         onEnter() {
             this.say("Hello, world");
@@ -17,7 +17,7 @@ test('Enter a state', function (t) {
     t.end();
 });
 
-test('Echo a message', function (t) {
+test('Echo a message', function(t) {
     var H = class extends StateHandler {
         onOtherMessage() {
             this.say(this.message.body);
@@ -32,7 +32,7 @@ test('Echo a message', function (t) {
     t.end();
 });
 
-test('Give options', function (t) {
+test('Give options', function(t) {
     var H = class extends StateHandler {
         onEnter() {
             this.say("What is your favorite letter?");
@@ -53,7 +53,7 @@ test('Give options', function (t) {
     t.end();
 });
 
-test('Go to an option with a given ID', function (t) {
+test('Go to an option with a given ID', function(t) {
     var H = class extends StateHandler {
         onOptionB() {
             this.say("yay");

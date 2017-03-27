@@ -15,7 +15,10 @@ function setup(bot, redis) {
         var skey = user + ":state";
         redis.get(skey, (err, stateJSON) => {
             if (err) return callback(err);
-            var state = { state: 'new', user: user }
+            var state = {
+                state: 'new',
+                user: user
+            }
             if (stateJSON) {
                 state = JSON.parse(stateJSON);
             }
@@ -33,7 +36,10 @@ function setup(bot, redis) {
             if (err) return console.log(err);
 
             if (message.body == "Reset") {
-                putState({ user: message.from, state: 'new' });
+                putState({
+                    user: message.from,
+                    state: 'new'
+                });
                 message.reply("Forgot-you-now.")
                 console.log("Resetting for " + message.from);
                 return

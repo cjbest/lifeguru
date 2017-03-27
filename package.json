@@ -15,7 +15,7 @@
   "license": "MIT",
   "scripts": {
     "lint": "jscs index.js lib/*.js test/*.js && jshint index.js lib/*.js test/*.js",
-    "test": "tape -r . test/*.js | tap-spec",
+    "test": "tape statebot/statehandler_test.js | tap-spec",
     "doc": "./node_modules/.bin/jsdoc2md --src index.js lib/*.js -t README.handlebars > README.md",
     "cover": "./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec",
     "upload_cover": "./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "@kikinteractive/kik": "^2.1.0",
+    "assert": "^1.4.1",
     "ngrok": "^2.2.6",
     "node-uuid": "1.4.7",
     "redis": "^2.6.5",

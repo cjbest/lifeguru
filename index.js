@@ -63,10 +63,14 @@ function setup(bot, redis) {
 }
 
 if (require.main === module) {
-    let redis = require('redis').createClient(process.env.REDIS_URL || 'redis://localhost:6379/1');
+    //let redis = require('redis').createClient(process.env.REDIS_URL || 'redis://localhost:6379/1');
     if (DEBUG) {
         console.log("in debug mode");
         require('ngrok').connect(PORT, (err, url) => {
+            if (err) {
+                console.log("NGROK ERROR")
+                throw err
+            }
             console.log('ngrok url: ' + url);
             let bot = new Bot({
                 username: 'cbtest.dev',
@@ -82,7 +86,7 @@ if (require.main === module) {
         let bot = new Bot({
             username: 'ratemyday',
             apiKey: '28468b56-d8ce-41b0-a736-115aa8f3465d',
-            baseUrl: 'https://fathomless-retreat-72110.herokuapp.com/'
+            baseUrl: 'https://lifeguru.herokuapp.com/'
         });
 
         bot.updateBotConfiguration();

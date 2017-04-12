@@ -1,6 +1,6 @@
 
 
-var hello1 = class extends StateHandler {
+var hello1 = class extends State {
     onEnter() {
         this.say("Hello there. Are you tired of being unhappy?");
         this.say("Of feeling your life is wasted, or just never being sure if you're good enough?");
@@ -12,7 +12,7 @@ var hello1 = class extends StateHandler {
     }
 }
 
-var hello2 = class extends StateHandler {
+var hello2 = class extends State {
     onEnter() {
         this.say("I can help.")
         this.say("Each day I'll ask you 5 questions, and if you can answer yes to all of them, your life will finally have purpose.");
@@ -23,4 +23,8 @@ var hello2 = class extends StateHandler {
 }
 
 
-var hello2 = new SimpleState()
+var hello2 = class extends State {
+    onEnter() {
+
+    }
+}

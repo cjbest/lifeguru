@@ -2,33 +2,42 @@
 const assert = require('assert');
 const Bot = require('@kikinteractive/kik');
 
-exports.StateHandler = class StateHandler {
+module.exports = class State {
 
-    constructor(user, message, previousOptions) {
-        if (new.target === StateHandler) {
+    constructor(message, user = message.from, previousOptions = {}) {
+        if (new.target === State) {
             throw new TypeError("StateHandler is abstract")
         }
-        this.user = user;
+        if (message && !(message instanceof Bot.Message)) {
+            throw new TypeError("Expecting a Bot.Message");
+        }
         this.message = message;
-        this._previousOptions = previousOptions || {};
+        this._user = user;
+        this._previousOptions = previousOptions;
         this._messagesToSend = [];
         this._nextState = null;
         this._options = {};
         this._serialOptionId = 1;
     }
 
-    onEnter() {}
+    onEnter() {
 
-    onOption() {}
+    }
+
+    onOption() {
+
+    }
 
     onOtherMessage() {
         // by default if we get a message we don't understand, sound confused and start over
         this.say("Huh?");
-        this.goTo(this.getType());
+        this.goTo(this.stateId);
     }
 
     say(msg) {
-        if (typeof msg === 'string') {
+        if (!msg) {
+            throw new TypeError("Must specify message");
+        } else if (typeof msg === 'string') {
             this._messagesToSend.push(Bot.Message.text(msg))
         } else if (msg instanceof Bot.Message) {
             this._messagesToSend.push(msg)
@@ -48,8 +57,8 @@ exports.StateHandler = class StateHandler {
     }
 
     goTo(state) {
-        if (state && state.prototype instanceof StateHandler) {
-            this._nextState = state.getType();
+        if (state && state.prototype instanceof State) {
+            this._nextState = state.stateId;
         } else {
             throw new TypeError("Expecting a class that inherits from StateHandler");
         }
@@ -60,8 +69,10 @@ exports.StateHandler = class StateHandler {
     }
 
     handleMessage() {
-        console.log(this.message);
-        if (this.message.type != "text") {
+        if (this.message.isStartChattingMessage()) {
+            this.handleEnter();
+        }
+        else if (this.message.type != "text") {
             this.onOtherMessage();
         } else if (this.message.body in this._previousOptions) {
             let optionId = this._previousOptions[this.message.body];
@@ -74,5 +85,23 @@ exports.StateHandler = class StateHandler {
         } else {
             this.onOtherMessage();
         }
+    }
+
+    get nextStateId() {
+        return this._nextState;
+    }
+
+    getMessagesToSend() {
+        let options = Object.keys(this._options);
+        var ret = this._messagesToSend;
+        this._messagesToSend = [];
+        if (ret.length > 0) {
+            ret[ret.length - 1].addTextResponse(...options);
+        }
+        return ret;
+    }
+
+    static get stateId() {
+        return this.name;
     }
 }

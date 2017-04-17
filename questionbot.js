@@ -9,8 +9,6 @@ var hello1 = class extends State {
     }
 
     onOption() {
-        console.log("what up");
-        console.log(hello2);
         this.goTo(hello2)
     }
 }
@@ -123,12 +121,16 @@ var done = class extends State {
     }
 }
 
+exports.defaultState = hello1;
+exports.otherStates = [
+    hello2, question1, question2, question3, question4,
+    question5, done
+]
+
 if (require.main === module) {
     let ConsoleBot = require('./statebot/tester.js');
     let StateMachine = require('./statebot/statemachine.js');
     cb = new ConsoleBot();
-    sm = StateMachine.inMemory(cb, hello1, hello2,
-        question1, question2, question3, question4,
-        question5, done);
+    sm = StateMachine.inMemory(cb, exports.defaultState, exports.otherStates);
     cb.startConsole();
 }

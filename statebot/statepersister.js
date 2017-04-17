@@ -2,6 +2,10 @@
 
 exports.StatePersister = class {
 
+    clearState(user, callback) {
+        throw new TypeError('not implemented')
+    }
+    
     saveState(user, state, callback) {
         throw new TypeError('not implemented')
     }
@@ -16,6 +20,11 @@ exports.InMemoryStatePersister = class extends exports.StatePersister {
     constructor() {
         super();
         this._stateJson = {};
+    }
+
+    clearState(user, callback) {
+        delete this._stateJson[user];
+        callback(null);
     }
 
     saveState(user, stateData, callback) {

@@ -1,75 +1,18 @@
 'use strict';
 
-let util = require('util');
-let http = require('http');
-let Bot = require('@kikinteractive/kik');
-//let Util = require('./util.js');
-//let Logic = require('./logic.js');
+const util = require('util');
+const http = require('http');
+const Bot = require('@kikinteractive/kik');
+const StateMachine = require('./statebot/statemachine.js');
+const RedisPersister = require('./statebot/redispersister.js');
+const QuestionBot = require('./questionbot.js');
 
-let PORT = process.env.PORT || 8080;
-let DEBUG = !process.env.REDIS_URL; // hack hack hack
-
-function setup(bot, redis) {
-
-    function getState(user, callback) {
-        var skey = user + ":state";
-        redis.get(skey, (err, stateJSON) => {
-            if (err) return callback(err);
-            var state = {
-                state: 'new',
-                user: user
-            }
-            if (stateJSON) {
-                state = JSON.parse(stateJSON);
-            }
-            callback(null, state);
-        });
-    }
-
-    function putState(state, callback) {
-        var skey = state['user'] + ":state";
-        redis.set(skey, JSON.stringify(state), callback);
-    }
-
-    function handleMessage(message) {
-        getState(message.from, (err, state) => {
-            if (err) return console.log(err);
-
-            if (message.body == "Reset") {
-                putState({
-                    user: message.from,
-                    state: 'new'
-                });
-                message.reply("Forgot-you-now.")
-                console.log("Resetting for " + message.from);
-                return
-            }
-            console.log(state);
-
-            var replies = []
-            Logic.stateHandlers[state.state](message, state, replies);
-            putState(state, (err) => {
-                if (err) {
-                    console.log(err);
-                    message.reply("Oops I broke");
-                    return;
-                }
-                //console.log(replies)
-                bot.send(replies, message.from);
-            });
-        });
-    }
-
-    bot.onTextMessage(handleMessage);
-    bot.onStartChattingMessage(handleMessage);
-    console.log("Starting to listen")
-    let server = http
-        .createServer(bot.incoming())
-        .listen(PORT);
-}
+const PORT = process.env.PORT || 8080;
+const DEBUG = !process.env.REDIS_URL; // hack hack hack
 
 if (require.main === module) {
-    //let redis = require('redis').createClient(process.env.REDIS_URL || 'redis://localhost:6379/1');
+    var sm;
+    var server;
     if (DEBUG) {
         console.log("in debug mode");
         require('ngrok').connect(PORT, (err, url) => {
@@ -84,7 +27,12 @@ if (require.main === module) {
                 baseUrl: url
             });
             bot.updateBotConfiguration();
-            setup(bot)
+            sm = new StateMachine(bot, new RedisPersister(),
+                QuestionBot.defaultState, ...QuestionBot.otherStates)
+
+            server = http
+                .createServer(bot.incoming())
+                .listen(PORT);
         });
     } else {
         console.log("in production mode");
@@ -96,7 +44,11 @@ if (require.main === module) {
         });
 
         bot.updateBotConfiguration();
-        setup(bot)
+        sm = new StateMachine(bot, new RedisPersister(process.env.REDIS_URL),
+            QuestionBot.defaultState, ...QuestionBot.otherStates)
+        server = http
+            .createServer(bot.incoming())
+            .listen(PORT);
     }
 } else {
     console.log("Not main module, not starting server.");

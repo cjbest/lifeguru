@@ -95,7 +95,7 @@ module.exports = class State {
         let options = Object.keys(this._options);
         var ret = this._messagesToSend;
         this._messagesToSend = [];
-        if (ret.length > 0) {
+        if (ret.length > 0 && options.length > 0) {
             ret[ret.length - 1].addTextResponse(...options);
         }
         return ret;

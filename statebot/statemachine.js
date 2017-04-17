@@ -34,6 +34,19 @@ module.exports = class StateMachine {
     }
 
     handleMessage(message, callback) {
+
+        // hardcode in a 'Reset' here for testing.
+        if (message.body === 'Reset') {
+            this._persister.clearState(message.from, (err) => {
+                if (err) {
+                    this.bot.send('Problem.', message.from);
+                } else {
+                    this.bot.send('Resetting...', message.from);
+                }
+            });
+            return;
+        }
+
         this._persister.loadState(message.from, (err, stateData) => {
             if (err) {
                 return callback(err);
@@ -53,21 +66,30 @@ module.exports = class StateMachine {
     }
 
     forceTransition(user, stateToTransitionTo, callback) {
-        //console.log("forcing transition to ", stateToTransitionTo.stateId);
+        console.log("forcing transition to ", stateToTransitionTo.stateId);
         callback = callback || function () { };
         var stateInst = new stateToTransitionTo(null, null);
         stateInst.handleEnter();
         this._postHandlerWork(user, stateInst);
     }
 
-    _postHandlerWork(user, stateInst, callback = () => {}) {
+    _postHandlerWork(user, stateInst, callback = () => { }) {
         const toSend = stateInst.getMessagesToSend();
         if (toSend.length) {
-            this.bot.send(toSend, user);
+            console.log("CBTEST things to send:");
+            for (var s of toSend) {
+                console.log(s.toJSON());
+            }
+            this.bot.send(toSend, user).catch((err) => {
+                console.log("failed to send");
+                console.error(err);
+            });
         }
         if (stateInst.nextStateId) {
             var nextState = this._states[stateInst.nextStateId];
             if (!nextState) {
+                console.log(stateInst.nextStateId);
+                console.log(this._states);
                 throw new Error("State not found: ", stateInst.nextStateId);
             }
             this.forceTransition(user, nextState, callback);
@@ -78,6 +100,6 @@ module.exports = class StateMachine {
             }
             this._persister.saveState(user, newStateData, callback);
         }
-        
+
     }
 }

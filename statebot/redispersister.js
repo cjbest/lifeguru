@@ -21,6 +21,12 @@ module.exports = class extends StatePersister {
         this._redis.set(skey, JSON.stringify(state), callback);
     }
 
+    clearState(user, callback) {
+        this.connect();
+        var skey = user + ":state";
+        this._redis.del(skey, callback);
+    }
+
     loadState(user, callback) {
         this.connect();
         var skey = user + ":state";
@@ -29,6 +35,7 @@ module.exports = class extends StatePersister {
                 callback(err);
             }
             else if (stateJson) {
+                console.log("loaded state for user ", user, stateJson);
                 callback(null, JSON.parse(stateJson));
             } else {
                 callback(null, null);

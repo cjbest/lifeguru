@@ -30,7 +30,9 @@ module.exports = class ConsoleBot {
                         responses.push(r.toJSON());
                     }
                 }
-                console.log('\t[', responses.join(' / '), ']'); 
+                if (responses) {
+                    console.log('\t[', responses.join(' / '), ']');
+                }
             }
         }
     }

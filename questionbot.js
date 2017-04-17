@@ -22,8 +22,104 @@ var hello2 = class extends State {
         this.addOption("Finally!", "Sounds awful...")
     }
 
-    onOption() { 
-        this.say("POO");
+    onOption() {
+        this.say("Great! Let's get started.");
+        this.goTo(question1);
+    }
+}
+
+var question1 = class extends State {
+    onEnter() {
+        this.say("Did you walk 10k steps today?")
+        this.addOption("Yes, my feet hurt", "No");
+    }
+
+    onOption1() {
+        this.say("Looking fit!");
+        this.goTo(question2);
+    }
+
+    onOption2() {
+        this.say("Hmmm.");
+        this.goTo(question2);
+    }
+}
+
+var question2 = class extends State {
+    onEnter() {
+        this.say("Did you eat a homecooked meal?")
+        this.addOption("Yes", "No I only ate GARBAGE");
+    }
+
+    onOption1() {
+        this.say("Yum!");
+        this.goTo(question3);
+    }
+
+    onOption2() {
+        this.say("Gross");
+        this.goTo(question3);
+    }
+}
+
+var question3 = class extends State {
+    onEnter() {
+        this.say("Did you read something new?")
+        this.addOption("Yes", "No");
+    }
+
+    onOption1() {
+        this.say("Hot damn!");
+        this.goTo(question4);
+    }
+
+    onOption2() {
+        this.say("What are you, illiterate?");
+        this.goTo(question4);
+    }
+}
+
+var question4 = class extends State {
+    onEnter() {
+        this.say("Did you acheive something at work?")
+        this.addOption("Yup", "Not today");
+    }
+
+    onOption1() {
+        this.say("Nailed it.");
+        this.goTo(question5);
+    }
+
+    onOption2() {
+        this.say("Ugh");
+        this.goTo(question5);
+    }
+}
+
+var question5 = class extends State {
+    onEnter() {
+        this.say("Did you meditate?")
+        this.addOption("<zenlike nod>", "😒");
+    }
+
+    onOption1() {
+        this.say("🙏💪");
+        this.goTo(done);
+    }
+
+    onOption2() {
+        this.say("Do you even inner peace, bruh?");
+        this.goTo(done);
+    }
+}
+
+var done = class extends State {
+    onEnter() {
+        this.say("Well, you're done for today!");
+    }
+
+    onOtherMessage() {
+        this.say("I'll ask you stuff again tomorrow");
     }
 }
 
@@ -31,6 +127,8 @@ if (require.main === module) {
     let ConsoleBot = require('./statebot/tester.js');
     let StateMachine = require('./statebot/statemachine.js');
     cb = new ConsoleBot();
-    sm = StateMachine.inMemory(cb, hello1, hello2);
+    sm = StateMachine.inMemory(cb, hello1, hello2,
+        question1, question2, question3, question4,
+        question5, done);
     cb.startConsole();
 }

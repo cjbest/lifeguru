@@ -67,6 +67,9 @@ module.exports = class StateMachine {
         }
         if (stateInst.nextStateId) {
             var nextState = this._states[stateInst.nextStateId];
+            if (!nextState) {
+                throw new Error("State not found: ", stateInst.nextStateId);
+            }
             this.forceTransition(user, nextState, callback);
         } else {
             const newStateData = {

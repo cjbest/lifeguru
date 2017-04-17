@@ -46,14 +46,14 @@ module.exports = class StateMachine {
             if (!this._states[stateId]) {
                 throw ("No handler for state: " + stateId);
             }
-            const stateInst = new this._states[stateId](message, previousOptions);
+            const stateInst = new this._states[stateId](message, message.from, previousOptions);
             stateInst.handleMessage();
             this._postHandlerWork(message.from, stateInst);
         });
     }
 
     forceTransition(user, stateToTransitionTo, callback) {
-        console.log("forcing transition to ", stateToTransitionTo.stateId);
+        //console.log("forcing transition to ", stateToTransitionTo.stateId);
         callback = callback || function () { };
         var stateInst = new stateToTransitionTo(null, null);
         stateInst.handleEnter();

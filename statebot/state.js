@@ -31,7 +31,7 @@ module.exports = class State {
     onOtherMessage() {
         // by default if we get a message we don't understand, sound confused and start over
         this.say("Huh?");
-        this.goTo(this.stateId);
+        this.goTo(this.constructor);
     }
 
     say(msg) {
@@ -46,21 +46,21 @@ module.exports = class State {
         }
     }
 
-    addOption(text, id) {
-        assert(typeof text === 'string');
-        assert(!(text in this._options), "Duplicate option: " + text);
-        if (!id) {
-            id = this._serialOptionId;
+    addOption(...options) {
+        for (var opt of options) {
+            assert(typeof opt === 'string');
+            var id = this._serialOptionId;
             this._serialOptionId++;
+            this._options[opt] = id;
         }
-        this._options[text] = id;
+
     }
 
     goTo(state) {
         if (state && state.prototype instanceof State) {
             this._nextState = state.stateId;
         } else {
-            throw new TypeError("Expecting a class that inherits from StateHandler");
+            throw new TypeError("Expecting a class that inherits from State, got " + state);
         }
     }
 

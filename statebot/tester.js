@@ -1,11 +1,12 @@
+#!/usr/bin/env node
 
 const readline = require('readline');
 const EventEmitter = require('events');
 const StateMachine = require('./statemachine.js');
-const StateHandler = require('./statehandler.js');
+const StateHandler = require('./state.js');
 const Bot = require('@kikinteractive/kik');
 
-class ConsoleBot {
+module.exports = class ConsoleBot {
 
     constructor() {
         this.emitter = new EventEmitter();
@@ -19,11 +20,23 @@ class ConsoleBot {
             else {
                 console.log("Bot sends message of type:", m.type);
             }
+            if (m._state.keyboards) {
+                var n = 1;
+                var responses = [];
+                for (var r of m._state.keyboards[0].responses) {
+                    if (r.type === 'text') {
+                        responses.push(`"${r.body}"`);
+                    } else {
+                        responses.push(r.toJSON());
+                    }
+                }
+                console.log('\t[', responses.join(' / '), ']'); 
+            }
         }
     }
 
     onStartChattingMessage(handler) {
-        
+
     }
 
     onTextMessage(handler) {
@@ -31,11 +44,11 @@ class ConsoleBot {
     }
 
     onPictureMessage(handler) {
-        
+
     }
 
     onVideoMessage(handler) {
-        
+
     }
 
     startConsole() {
@@ -47,10 +60,10 @@ class ConsoleBot {
             output: process.stdout
         });
         let m = Bot.Message.fromJSON({
-                'type': 'start-chatting',
-                'from': 'cb'
-            });
-        this.emitter.emit('start', m);
+            'type': 'start-chatting',
+            'from': 'cb'
+        });
+        this.emitter.emit('message', m);
         this.rl.prompt()
 
         this.rl.on("line", (txt) => {
@@ -67,6 +80,7 @@ class ConsoleBot {
             console.log("");
             console.log("byeee");
         });
+
     }
 }
 
@@ -90,6 +104,7 @@ if (require.main === module) {
         }
     }
 
+    let ConsoleBot = module.exports;
     cb = new ConsoleBot();
     sm = StateMachine.inMemory(cb, Ping, Pong);
     cb.startConsole();

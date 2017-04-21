@@ -15,11 +15,16 @@ test('Simple round trip to redis', function (t) {
     t.plan(3)
 
     var p = new RedisPersister();
-    p.saveState('cb', state, (err) => {
+    p.saveState('cbsim', state, (err) => {
         t.error(err, "No error on save");
-        p.loadState('cb', (err, loadedState) => {
+        p.loadState('cbsim', (err, loadedState) => {
             t.error(err, "No error on load");
             t.deepEqual(loadedState, state, "Loaded state is the same");
         });
     });
+});
+
+test('close redis', function (t) {
+    require('../redisClient.js').quit();
+    t.end();
 });

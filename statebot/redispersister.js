@@ -1,23 +1,17 @@
 
 let StatePersister = require('./statepersister.js').StatePersister;
-let redis = require('redis');
 
 module.exports = class extends StatePersister {
 
-    constructor(redisUrl = 'redis://localhost:6379/1') {
-        super();
-        this._redisUrl = redisUrl;
-    }
-
     connect() {
         if (!this._redis) {
-            this._redis = redis.createClient(this._redisUrl);
+            this._redis = require('../redisClient.js');
         }
     }
 
     saveState(user, state, callback) {
         this.connect();
-        var skey = user + ":state";
+        var skey = "users:" + user + ":state";
         this._redis.set(skey, JSON.stringify(state), callback);
     }
 
@@ -29,7 +23,7 @@ module.exports = class extends StatePersister {
 
     loadState(user, callback) {
         this.connect();
-        var skey = user + ":state";
+        var skey = "users:" + user + ":state";
         this._redis.get(skey, (err, stateJson) => {
             if (err) {
                 callback(err);

@@ -24,7 +24,7 @@ test('Echo a message', function (t) {
         }
     }
 
-    var h = new H(Bot.Message.text("foo 32"), 'cb');
+    var h = new H(Bot.Message.text("foo 32"), 'cbsim');
     h.handleMessage();
     t.equal(h._messagesToSend.length, 1)
     t.equal(h._messagesToSend[0].type, "text");

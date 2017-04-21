@@ -28,6 +28,7 @@
   "dependencies": {
     "@kikinteractive/kik": "^2.1.0",
     "assert": "^1.4.1",
+    "moment-timezone": "^0.5.13",
     "ngrok": "^2.2.6",
     "node-uuid": "1.4.7",
     "redis": "^2.6.5"

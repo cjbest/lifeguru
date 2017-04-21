@@ -1,6 +1,7 @@
 
 const InMemoryStatePersister = require('./statepersister.js').InMemoryStatePersister;
 const assert = require('assert');
+const State = require('./state.js');
 
 module.exports = class StateMachine {
     constructor(bot, persister, defaultState, ...otherStates) {
@@ -66,6 +67,7 @@ module.exports = class StateMachine {
     }
 
     forceTransition(user, stateToTransitionTo, callback) {
+        stateToTransitionTo = this._getState(stateToTransitionTo);
         console.log("forcing transition to ", stateToTransitionTo.stateId);
         callback = callback || function () { };
         var stateInst = new stateToTransitionTo(null, null);
@@ -101,5 +103,14 @@ module.exports = class StateMachine {
             this._persister.saveState(user, newStateData, callback);
         }
 
+    }
+
+    _getState(stateOrId) {
+        if (typeof stateOrId === 'string' && this._states[stateOrId]) {
+            return this._states[stateOrId];
+        } else if (stateOrId && stateOrId.prototype instanceof State) {
+            return stateOrId;
+        }
+        throw new Error("Expected a state or state ID, got:" + stateOrId);
     }
 }

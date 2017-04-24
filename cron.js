@@ -41,24 +41,42 @@ function sendDailyAsks() {
         let redis = require('./redisClient.js');
         // TODO: batch with scan() if we are still using redis beyond the point this doesn't scale
         redis.hgetall(usersKey, (err, users) => {
-            for (var u in Object.keys(users)) {
+            if (!users) {
+                console.log("no users");
+                return;
+            }
+            for (var u of Object.keys(users)) {
+                console.log(u);
+                console.log(users);
+                let userData = JSON.parse(users[u]);
                 if (isItTimeToMessageUser(userData)) {
-                    sm.forceTransition(user, "question1");
+                    userData['lastPoked'] = +new Date()
+                    redis.hset(usersKey, u, JSON.stringify(userData), (err) => {
+                        if (err) {
+                            console.log(err);
+                            return
+                        }
+                        sm.forceTransition(u, "question1");
+                    })
                 }
             }
         });
     }, (err) => console.error(err));
 }
 
-function isItTimeToMessageUser(userData, now = new Date(), hour_to_send=7) {
+function isItTimeToMessageUser(userData, now = new Date(), hour_to_send=19) {
     let userRelTime = moment(now).tz(userData.timezone || 'America/Toronto');
+    console.log("hour:", userRelTime.hour());
     if (userRelTime.hour() < hour_to_send) {
+        console.log("too early");
         return false;
     }
     let ms_between = 12 * 60 * 60 * 100;
     if (userData.lastPoked && now - userData.lastPoked < ms_between) {
+        console.log("too soon");
         return false;
     }
+    console.log("just right");
     return true;
 }
 
@@ -66,5 +84,6 @@ exports.pokeProfile = pokeProfile;
 exports.isItTimeToMessageUser = isItTimeToMessageUser;
 
 if (require.main === module) {
-
+    console.log("Running cron");
+    sendDailyAsks();
 }

@@ -3,6 +3,7 @@ const Bot = require('@kikinteractive/kik');
 const StateMachine = require('./statebot/statemachine.js');
 const RedisPersister = require('./statebot/redispersister.js');
 const QuestionBot = require('./questionbot.js');
+let cron = require('./cron.js');
 
 const DEBUG = !process.env.REDIS_URL; // hack hack hack
 const PORT = process.env.PORT || 8080;
@@ -11,6 +12,13 @@ function makeSm(bot) {
     return new StateMachine(bot, new RedisPersister(),
         QuestionBot.defaultState, ...QuestionBot.otherStates);
 }
+
+function addPreHandler(bot) {
+    bot.onTextMessage((message, next) => {
+        cron.pokeProfile(message.from, bot);
+        next();
+    });
+};
 
 let setupPromise = new Promise((resolve, reject) => {
     // in debug mode, set up NGROK so we can tunnel to our local machine
@@ -27,7 +35,13 @@ let setupPromise = new Promise((resolve, reject) => {
                 apiKey: 'aee21983-9bb0-4b11-9d46-2fff8518f24f',
                 baseUrl: url
             });
-            bot.updateBotConfiguration();
+            bot.updateBotConfiguration().then((foo) => {
+                console.log("Bot config update successful");
+            }, (err) => {
+                console.log("Bot config update FAILED");
+                console.log(err);
+            });
+            addPreHandler(bot);
             let sm = makeSm(bot);
             resolve({
                 bot: bot,
@@ -43,7 +57,13 @@ let setupPromise = new Promise((resolve, reject) => {
             baseUrl: 'https://lifeguru.herokuapp.com/'
         });
 
-        bot.updateBotConfiguration();
+        bot.updateBotConfiguration().then((foo) => {
+            console.log("Bot config update successful");
+        }, (err) => {
+            console.log("Bot config update FAILED");
+            console.log(err);
+        });
+        addPreHandler(bot);
         sm = makeSm(bot);
         resolve({
             bot: bot,

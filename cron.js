@@ -54,6 +54,7 @@ function sendDailyAsks() {
         redis.hgetall(usersKey, (err, users) => {
             if (!users) {
                 console.log("no users");
+                redis.quit();
                 return;
             }
             for (var u of Object.keys(users)) {

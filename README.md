@@ -9,6 +9,7 @@ Brainchild of [@hamishmackenzie](https://twitter.com/hamishmckenzie). (Awful) co
 
 Run a local debug server
 ```sh 
+redis-server &
 node index.js
 ```
 

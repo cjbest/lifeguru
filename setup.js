@@ -20,59 +20,54 @@ function addPreHandler(bot) {
     });
 };
 
-let setupPromise = new Promise((resolve, reject) => {
-    // in debug mode, set up NGROK so we can tunnel to our local machine
-    if (DEBUG) {
-        console.log("in debug mode");
-        require('ngrok').connect(PORT, (err, url) => {
-            if (err) {
-                console.log("NGROK ERROR")
-                reject(err);
-            }
-            console.log('ngrok url: ' + url);
-            let bot = new Bot({
-                username: 'cbtest.dev',
-                apiKey: 'aee21983-9bb0-4b11-9d46-2fff8518f24f',
-                baseUrl: url
-            });
-            bot.updateBotConfiguration().then((foo) => {
-                console.log("Bot config update successful");
-            }, (err) => {
-                console.log("Bot config update FAILED");
-                console.log(err);
-            });
-            addPreHandler(bot);
-            let sm = makeSm(bot);
-            resolve({
-                bot: bot,
-                sm: sm
-            });
-        });
-    } else {
-        console.log("in production mode");
-        // Configure the bot API endpoint, details for your bot
-        bot = new Bot({
+function getBotConfig(debug = DEBUG, realUrl = true) {
+    if (!debug) {
+        console.log("Production mode");
+        return Promise.resolve({
             username: 'ratemyday',
             apiKey: '28468b56-d8ce-41b0-a736-115aa8f3465d',
             baseUrl: 'https://lifeguru.herokuapp.com/'
         });
-
-        bot.updateBotConfiguration().then((foo) => {
-            console.log("Bot config update successful");
-        }, (err) => {
-            console.log("Bot config update FAILED");
-            console.log(err);
+    } else if (!realUrl) {
+        console.log("Debug mode, fake URL");
+        return Promise.resolve({
+            username: 'cbtest.dev',
+            apiKey: 'aee21983-9bb0-4b11-9d46-2fff8518f24f',
         });
-        addPreHandler(bot);
-        sm = makeSm(bot);
-        resolve({
-            bot: bot,
-            sm: sm
+    } else {
+        return new Promise((resolve, reject) => {
+            console.log("Setting up ngrok for local run");
+            require('ngrok').connect(PORT, (err, url) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve({
+                        username: 'cbtest.dev',
+                        apiKey: 'aee21983-9bb0-4b11-9d46-2fff8518f24f',
+                        baseUrl: url
+                    });
+                }
+            });
         });
     }
-});
+}
+
+function setupBotAndSm(setupAsReceiver = false, debug = DEBUG) {
+    return getBotConfig(debug, setupAsReceiver).then((botConfig) => {
+        let bot = new Bot(botConfig);
+        if (setupAsReceiver) {
+            return bot.updateBotConfiguration().then(() => Promise.resolve(bot));
+        }
+        return Promise.resolve(bot);
+    }).then((bot) => {
+        addPreHandler(bot);
+        let sm = makeSm(bot);
+        return Promise.resolve({
+            'bot': bot,
+            'sm': sm
+        });
+    });
+}
 
 exports.PORT = PORT;
-exports.botPromise = setupPromise.then((val) => Promise.resolve(val.bot));
-exports.smPromise = setupPromise.then((val) => Promise.resolve(val.sm));
-
+exports.setupBotAndSm = setupBotAndSm;

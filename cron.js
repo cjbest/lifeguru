@@ -57,24 +57,46 @@ function sendDailyAsks() {
                 redis.quit();
                 return;
             }
+            let promises = [];
             for (var u of Object.keys(users)) {
-                console.log(u);
-                console.log(users);
-                let userData = JSON.parse(users[u]);
-                if (isItTimeToMessageUser(userData)) {
-                    userData['lastPoked'] = +new Date()
-                    redis.hset(usersKey, u, JSON.stringify(userData), (err) => {
-                        if (err) {
-                            console.log(err);
-                            return
-                        }
-                        sm.forceTransition(u, "question1");
-                    })
-                }
+                promises.push(sendAskIfNeeded(u, JSON.parse(users[u]), redis, sm));
             }
-            redis.quit();
+            Promise.all(promises).then(() => {
+                console.log("done, closing redis");
+                redis.quit()
+            }, (err) => {
+                console.log("something went wrong, closing redis");
+                console.log(err);
+                redis.quit()
+            });
         });
     }, (err) => console.error(err));
+}
+
+function sendAskIfNeeded(username, userData, redis, sm) {
+    return new Promise((resolve, reject) => {
+        console.log(username);
+        console.log(userData);
+        if (isItTimeToMessageUser(userData)) {
+            userData['lastPoked'] = +new Date()
+            redis.hset(usersKey, username, JSON.stringify(userData), (err) => {
+                if (err) {
+                    console.log(err);
+                    reject();
+                }
+                sm.forceTransition(username, "question1", (err) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(true);
+                    }
+                });
+            })
+        } else {
+            resolve(false);
+        }
+    });
+
 }
 
 const TWELVE_HOURS = 12 * 60 * 60 * 1000;

@@ -72,7 +72,7 @@ module.exports = class StateMachine {
         callback = callback || function () { };
         var stateInst = new stateToTransitionTo(null, null);
         stateInst.handleEnter();
-        this._postHandlerWork(user, stateInst);
+        this._postHandlerWork(user, stateInst, callback);
     }
 
     _postHandlerWork(user, stateInst, callback = () => { }) {

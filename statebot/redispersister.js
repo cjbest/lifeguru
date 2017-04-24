@@ -17,7 +17,7 @@ module.exports = class extends StatePersister {
 
     clearState(user, callback) {
         this.connect();
-        var skey = user + ":state";
+        var skey = "users:" + user + ":state";
         this._redis.del(skey, callback);
     }
 

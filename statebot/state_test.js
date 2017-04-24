@@ -36,9 +36,9 @@ test('Give options', function (t) {
     var H = class extends State {
         onEnter() {
             this.say("What is your favorite letter?");
-            this.addOption("A", "a")
-            this.addOption("B", "b")
-            this.addOption("C", "c")
+            this.addOption("A")
+            this.addOption("B")
+            this.addOption("C")
         }
     }
 
@@ -46,9 +46,9 @@ test('Give options', function (t) {
     h.handleEnter();
     t.equal(h._messagesToSend.length, 1)
     t.deepEquals(h._options, {
-        "A": "a",
-        "B": "b",
-        "C": "c"
+        "A": 1,
+        "B": 2,
+        "C": 3
     });
     t.end();
 });

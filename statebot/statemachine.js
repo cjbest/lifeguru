@@ -78,7 +78,6 @@ module.exports = class StateMachine {
     _postHandlerWork(user, stateInst, callback = () => { }) {
         const toSend = stateInst.getMessagesToSend();
         if (toSend.length) {
-            console.log("CBTEST things to send:");
             for (var s of toSend) {
                 console.log(s.toJSON());
             }

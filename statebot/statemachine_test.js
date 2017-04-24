@@ -25,6 +25,7 @@ test('Forced entry', (t) => {
         t.equals(messages.length, 1);
         t.equals(messages[0].body, "Hello, world");
         t.end();
+        return Promise.resolve();
     });
 
     sm = StateMachine.inMemory(bot, HelloWorld);
@@ -46,6 +47,7 @@ test('Echo', (t) => {
         t.equals(messages.length, 1);
         t.equals(messages[0].body, "suup");
         t.end();
+        return Promise.resolve();
     })
 
     sm = StateMachine.inMemory(bot, Echo);
